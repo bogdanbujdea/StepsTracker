@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
-using Windows.Devices.Sensors;
 using Windows.UI.Popups;
+using StepsTracker.Pedometer;
 using StepsTracker.SensorCore;
 
 namespace StepsTracker.StepsEngine
@@ -24,7 +24,7 @@ namespace StepsTracker.StepsEngine
             {
                 // Check if there is a pedometer in the system.
                 // This also checks if the user has disabled motion data from Privacy settings
-                Pedometer pedometer = await Pedometer.GetDefaultAsync();
+                Windows.Devices.Sensors.Pedometer pedometer = await Windows.Devices.Sensors.Pedometer.GetDefaultAsync();
 
                 // If there is one then create OSStepsEngine.
                 if (pedometer != null)

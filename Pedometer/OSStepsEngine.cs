@@ -22,7 +22,6 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Windows.Devices.Sensors;
 using StepsTracker.Models;
 using StepsTracker.StepsEngine;
 
@@ -33,13 +32,6 @@ namespace StepsTracker.Pedometer
     /// </summary>
     public class OSStepsEngine : IStepsEngine
     {
-        /// <summary>
-        /// Constructor that receives a pedometer instance
-        /// </summary>
-        public OSStepsEngine()
-        {
-        }
-
         /// <summary>
         /// Activates the step counter when app goes to foreground
         /// </summary>
@@ -85,7 +77,8 @@ namespace StepsTracker.Pedometer
                 if (startTime < DateTime.Now)
                 {
                     // Get history from startTime to the resolution duration
-                    var readings = await Pedometer.GetSystemHistoryAsync(startTime, TimeSpan.FromMinutes(resolution));
+                    
+                    var readings = await Windows.Devices.Sensors.Pedometer.GetSystemHistoryAsync(startTime, TimeSpan.FromMinutes(resolution));
 
                     // Compute the deltas
                     var stepsDelta = StepCountData.FromPedometerReadings(readings);
@@ -109,22 +102,22 @@ namespace StepsTracker.Pedometer
         public async Task<StepCountData> GetTotalStepCountAsync(DateTime day)
         {
             // Get history from 1 day
-            var readings = await Pedometer.GetSystemHistoryAsync(day.Date, TimeSpan.FromDays(1));
+            var readings = await Windows.Devices.Sensors.Pedometer.GetSystemHistoryAsync(day.Date, TimeSpan.FromDays(1));
 
             return StepCountData.FromPedometerReadings(readings);
         }
 
-        public async Task<List<ReadingByDate>> GetStepsForHour(int hour, int days)
+        public async Task<List<ReadingByDate>> GetStepsForHour(DateTime date, int days)
         {
             List<ReadingByDate> stepsByDay = new List<ReadingByDate>();
             for (int i = 0; i < days; i++)
             {
                 var dateTime = DateTime.Now.Subtract(TimeSpan.FromDays(i));
-                var stepsForDay = await Pedometer.GetSystemHistoryAsync(dateTime, TimeSpan.FromHours(hour));
+                var stepsForDay = await Windows.Devices.Sensors.Pedometer.GetSystemHistoryAsync(dateTime, new TimeSpan(date.Hour, date.Minute, date.Second));
                 var data = StepCountData.FromPedometerReadings(stepsForDay);
                 stepsByDay.Add(new ReadingByDate
                 {
-                    DateTime = dateTime.AddHours(hour),
+                    DateTime = dateTime.AddHours(date.Hour).AddSeconds(date.Second),
                     RunningStepsCount = data.RunningCount,
                     WalkingStepsCount = data.WalkingCount,
                     TotalStepsCount = data.TotalCount

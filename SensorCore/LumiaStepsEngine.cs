@@ -155,7 +155,7 @@ namespace StepsTracker.SensorCore
             return null;
         }
 
-        public async Task<List<ReadingByDate>> GetStepsForHour(int hour, int days)
+        public async Task<List<ReadingByDate>> GetStepsForHour(DateTime date, int days)
         {
             List<ReadingByDate> stepsByDay = new List<ReadingByDate>();
             for (int i = 0; i < days; i++)
@@ -165,13 +165,12 @@ namespace StepsTracker.SensorCore
                     var dateTime = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, 0, 0, 0).Subtract(TimeSpan.FromDays(i));
                     Debug.WriteLine("hour: " + i);
                     Debug.WriteLine("date: " + dateTime);
-                    
-                    if (hour == 0) hour = 1;
-                    var stepsForDay = await _stepCounter.GetStepCountForRangeAsync(dateTime, TimeSpan.FromHours(hour));
+
+                    var stepsForDay = await _stepCounter.GetStepCountForRangeAsync(dateTime, new TimeSpan(date.Hour, date.Minute, date.Second));
                     var data = StepCountData.FromLumiaStepCount(stepsForDay);
                     stepsByDay.Add(new ReadingByDate
                     {
-                        DateTime = dateTime.AddHours(hour),
+                        DateTime = dateTime.AddHours(date.Hour).AddSeconds(date.Second),
                         RunningStepsCount = data.RunningCount,
                         WalkingStepsCount = data.WalkingCount,
                         TotalStepsCount = data.TotalCount
@@ -254,34 +253,34 @@ namespace StepsTracker.SensorCore
                 switch (SenseHelper.GetSenseError(failure.HResult))
                 {
                     case SenseError.LocationDisabled:
-                    {
-                        dlg = new MessageDialog(_resourceLoader.GetString("FeatureDisabled/Location"), _resourceLoader.GetString("FeatureDisabled/Title"));
-                        dlg.Commands.Add(new UICommand("Yes", new UICommandInvokedHandler(async (cmd) => await SenseHelper.LaunchLocationSettingsAsync())));
-                        dlg.Commands.Add(new UICommand("No", new UICommandInvokedHandler((cmd) => { /* do nothing */ })));
-                        await dlg.ShowAsync();
-                        new System.Threading.ManualResetEvent(false).WaitOne(500);
-                        return false;
-                    }
+                        {
+                            dlg = new MessageDialog(_resourceLoader.GetString("FeatureDisabled/Location"), _resourceLoader.GetString("FeatureDisabled/Title"));
+                            dlg.Commands.Add(new UICommand("Yes", new UICommandInvokedHandler(async (cmd) => await SenseHelper.LaunchLocationSettingsAsync())));
+                            dlg.Commands.Add(new UICommand("No", new UICommandInvokedHandler((cmd) => { /* do nothing */ })));
+                            await dlg.ShowAsync();
+                            new System.Threading.ManualResetEvent(false).WaitOne(500);
+                            return false;
+                        }
                     case SenseError.SenseDisabled:
-                    {
-                        dlg = new MessageDialog(_resourceLoader.GetString("FeatureDisabled/MotionData"), _resourceLoader.GetString("FeatureDisabled/Title"));
-                        dlg.Commands.Add(new UICommand("Yes", new UICommandInvokedHandler(async (cmd) => await SenseHelper.LaunchSenseSettingsAsync())));
-                        dlg.Commands.Add(new UICommand("No", new UICommandInvokedHandler((cmd) => { /* do nothing */ })));
-                        await dlg.ShowAsync();
-                        return false;
-                    }
+                        {
+                            dlg = new MessageDialog(_resourceLoader.GetString("FeatureDisabled/MotionData"), _resourceLoader.GetString("FeatureDisabled/Title"));
+                            dlg.Commands.Add(new UICommand("Yes", new UICommandInvokedHandler(async (cmd) => await SenseHelper.LaunchSenseSettingsAsync())));
+                            dlg.Commands.Add(new UICommand("No", new UICommandInvokedHandler((cmd) => { /* do nothing */ })));
+                            await dlg.ShowAsync();
+                            return false;
+                        }
                     case SenseError.SenseNotAvailable:
-                    {
-                        dlg = new MessageDialog(_resourceLoader.GetString("FeatureNotSupported/Message"), _resourceLoader.GetString("FeatureNotSupported/Title"));
-                        await dlg.ShowAsync();
-                        return false;
-                    }
+                        {
+                            dlg = new MessageDialog(_resourceLoader.GetString("FeatureNotSupported/Message"), _resourceLoader.GetString("FeatureNotSupported/Title"));
+                            await dlg.ShowAsync();
+                            return false;
+                        }
                     default:
-                    {
-                        dlg = new MessageDialog("Failure: " + SenseHelper.GetSenseError(failure.HResult), "");
-                        await dlg.ShowAsync();
-                        return false;
-                    }
+                        {
+                            dlg = new MessageDialog("Failure: " + SenseHelper.GetSenseError(failure.HResult), "");
+                            await dlg.ShowAsync();
+                            return false;
+                        }
                 }
             }
             else
