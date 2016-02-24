@@ -155,7 +155,7 @@ namespace StepsTracker.SensorCore
             return null;
         }
 
-        public async Task<List<ReadingByDate>> GetStepsForHour(DateTime date, int days)
+        public async Task<List<ReadingByDate>> GetStepsForHourAsync(DateTime date, int days)
         {
             List<ReadingByDate> stepsByDay = new List<ReadingByDate>();
             for (int i = 0; i < days; i++)

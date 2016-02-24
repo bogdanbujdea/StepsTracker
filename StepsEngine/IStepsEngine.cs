@@ -37,6 +37,6 @@ namespace StepsTracker.StepsEngine
         /// <returns>Step count for given day</returns>
         Task<StepCountData> GetTotalStepCountAsync(DateTime day);
 
-        Task<List<ReadingByDate>> GetStepsForHour(DateTime date, int days);
+        Task<List<ReadingByDate>> GetStepsForHourAsync(DateTime date, int days);
     }
 }
