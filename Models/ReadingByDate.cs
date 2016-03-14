@@ -8,12 +8,23 @@ namespace StepsTracker.Models
     public class ReadingByDate: INotifyPropertyChanged
     {
         private bool _isHighest;
+        private double _pixelDistance;
 
         public ReadingByDate()
         {
             WalkingStepsCount = RunningStepsCount = TotalStepsCount = 0;
         }
         public DateTime DateTime { get; set; }
+
+        public double PixelDistance
+        {
+            get { return _pixelDistance; }
+            set
+            {
+                _pixelDistance = value; 
+                OnPropertyChanged();
+            }
+        }
 
         public uint WalkingStepsCount { get; set; }
 

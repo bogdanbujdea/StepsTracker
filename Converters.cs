@@ -30,6 +30,18 @@ namespace StepsTracker
     /// </summary>
     public sealed class StepCountData
     {
+        public StepCountData()
+        {
+            
+        }
+
+        public StepCountData(uint runningCount, uint walkingCount, uint unknownCount)
+        {
+            RunningCount = runningCount;
+            WalkingCount = walkingCount;
+            UnknownCount = unknownCount;
+        }
+
         public uint RunningCount { get; private set; }
         public uint WalkingCount { get; private set; }
         public uint UnknownCount { get; private set; }

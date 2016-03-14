@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.Resources;
 using Windows.Security.ExchangeActiveSyncProvisioning;
+using Windows.UI.Core;
 using Windows.UI.Popups;
 using Windows.UI.Xaml;
 using Lumia.Sense;
@@ -32,6 +33,9 @@ namespace StepsTracker.SensorCore
         /// Constructs a new ResourceLoader object.
         /// </summary>
         protected static readonly ResourceLoader _resourceLoader = ResourceLoader.GetForCurrentView("Resources");
+
+        private ulong _initialSteps = 0;
+
         #endregion
 
         /// <summary>
@@ -95,8 +99,34 @@ namespace StepsTracker.SensorCore
             else
             {
                 await InitializeAsync();
+                StartTask();
             }
             _sensorActive = true;
+        }
+
+        private void StartTask()
+        {
+            Task.Factory.StartNew(async () =>
+            {
+                while (true)
+                {
+                    await CallSensorCoreApiAsync(async () =>
+                    {
+                        var currentReading = await _stepCounter.GetCurrentReadingAsync();
+
+                        var steps = (currentReading.WalkingStepCount + currentReading.RunningStepCount) - _initialSteps;
+                        if (steps != 0)
+                        {
+                            Moving?.Invoke(this, new StepCountData(currentReading.RunningStepCount, currentReading.WalkingStepCount, 0));
+                            _initialSteps = currentReading.WalkingStepCount + currentReading.RunningStepCount;
+                        }
+                    }
+                    );
+
+                    await Task.Delay(500);
+                }
+            }
+);
         }
 
         /// <summary>
@@ -140,6 +170,8 @@ namespace StepsTracker.SensorCore
             }
             return steps;
         }
+
+        public event EventHandler<StepCountData> Moving;
 
         /// <summary>
         /// Returns step count for given day

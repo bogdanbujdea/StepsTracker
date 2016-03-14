@@ -22,6 +22,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Windows.Devices.Sensors;
 using StepsTracker.Models;
 using StepsTracker.StepsEngine;
 
@@ -36,11 +37,17 @@ namespace StepsTracker.Pedometer
         /// Activates the step counter when app goes to foreground
         /// </summary>
         /// <returns>Asynchronous task</returns>
-        public Task ActivateAsync()
+        public async Task ActivateAsync()
         {
             // This is where you can subscribe to Pedometer ReadingChanged events if needed.
             // Do nothing here because we are not using events.
-            return Task.FromResult(false);
+            var pedometer = await Windows.Devices.Sensors.Pedometer.GetDefaultAsync();
+            pedometer.ReadingChanged += ReadingChanged;
+        }
+
+        private void ReadingChanged(Windows.Devices.Sensors.Pedometer sender, PedometerReadingChangedEventArgs args)
+        {            
+            OnMoving(StepCountData.FromPedometerReadings(new List<PedometerReading> {args.Reading}));
         }
 
         /// <summary>
@@ -95,6 +102,8 @@ namespace StepsTracker.Pedometer
             return steps;
         }
 
+        public event EventHandler<StepCountData> Moving;
+
         /// <summary>
         /// Returns step count for given day
         /// </summary>
@@ -124,6 +133,11 @@ namespace StepsTracker.Pedometer
                 });
             }
             return stepsByDay;
+        }
+
+        protected virtual void OnMoving(StepCountData e)
+        {
+            Moving?.Invoke(this, e);
         }
     }
 }

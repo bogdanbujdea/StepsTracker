@@ -31,6 +31,8 @@ namespace StepsTracker.StepsEngine
         /// <returns>List of steps counts for the given day at given resolution.</returns>
         Task<List<KeyValuePair<TimeSpan, uint>>> GetStepsCountsForDay(DateTime day, uint resolution);
 
+        event EventHandler<StepCountData> Moving;
+
         /// <summary>
         /// Returns step count for given day
         /// </summary>
